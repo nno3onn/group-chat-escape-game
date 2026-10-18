@@ -53,3 +53,38 @@ body:has(.game-stage) .site-footer{display:none}
 .hero-links button{text-decoration:none;color:#657071;font-weight:600}
 .hero-links button:hover{text-decoration:underline;text-underline-offset:5px}
 @media(prefers-reduced-motion:reduce){.face-row .character-avatar.face,.primary-button{transition:none}}
+
+
+/* v27: keep playback controls anchored when status changes */
+.game-stage .controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px 48px 88px;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.game-stage .controls > span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.game-stage .controls > button {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 2px;
+  white-space: nowrap;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 359px) {
+  .game-stage .controls {
+    grid-template-columns: minmax(0, 1fr) 62px 42px 76px;
+    gap: 4px;
+  }
+  .game-stage .controls > button { font-size: 10px; }
+}
