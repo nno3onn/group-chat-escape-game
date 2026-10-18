@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {init, skipToBoundary, selectChoice, persist, restore} from './runtime.ts';
 
 const paths = {
- E04:['intro_ignore','leave_silent','reason_silence','silent_continue','ch4_silence','final_quiet'],
- E06:['intro_busy','leave_normal','reason_permission','vote_permission','ch4_polite','final_polite'],
- E07:['intro_busy','leave_normal','reason_silence','silent_identity','ch4_identity','final_identity'],
+ E04:['intro_ignore','leave_silent','reason_silence','silent_continue','ch4_silence','final_disappear'],
+ E06:['intro_busy','leave_normal','reason_permission','vote_permission','ch4_polite','final_disappear'],
+ E07:['intro_busy','leave_normal','reason_silence','silent_identity','ch4_identity','final_question'],
 } as const;
 for (const [ending, steps] of Object.entries(paths)) {
  let s = init();

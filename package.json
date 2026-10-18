@@ -10,7 +10,7 @@
     "test:story": "tsx src/game/verify-story.ts",
     "test:runtime": "tsx src/game/runtime.test.ts",
     "test:endings": "tsx src/game/all-endings.test.ts",
-    "test:offline": "node --experimental-strip-types src/game/runtime.test.ts && node --experimental-strip-types src/game/all-endings.test.ts && node --experimental-strip-types src/game/spectator.test.ts && node --experimental-strip-types src/game/routes.test.ts && node --experimental-strip-types src/game/preflight.test.ts && node --experimental-strip-types src/game/escape-contract.test.ts",
+    "test:offline": "node --experimental-strip-types src/game/runtime.test.ts && node --experimental-strip-types src/game/all-endings.test.ts && node --experimental-strip-types src/game/spectator.test.ts && node --experimental-strip-types src/game/routes.test.ts && node --experimental-strip-types src/game/preflight.test.ts && node --experimental-strip-types src/game/escape-contract.test.ts && node --experimental-strip-types src/game/balanced-flow.test.ts && node --experimental-strip-types src/game/redesign.test.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {

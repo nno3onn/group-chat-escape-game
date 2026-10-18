@@ -2,8 +2,8 @@
 import AdSlot from './AdSlot';
 import CharacterAvatar from './CharacterAvatar';
 import {useEffect,useRef,useState,useCallback} from 'react';
-import {init,commitEvent,currentNode,visibleChoices,selectChoice,skipToBoundary,persist,restore,type Runtime,type ChatMessage} from '../game/runtime';
-import {story, type Event} from '../game/story';
+import {init,commitEvent,currentNode,visibleChoices,selectChoice,skipToBoundary,leaveChat,persist,restore,type Runtime,type ChatMessage} from '../game/runtime';
+import {story, matchesConditions, type Event} from '../game/story';
 const SAVE='talkfail-v19';
 const NAMES:Record<string,string>={minji:'민지',junho:'준호',subin:'수빈',taehoon:'태훈',player:'나',system:'시스템'};
 const ENDINGS:Record<string,string>={E01:'탈출하려다 방장 됨',E02:'나 빼고 다 나감',E03:'재초대가 직업이 됨',E04:'아무도 나간 걸 몰랐다',E05:'단톡방 자체가 탈퇴함',E06:'야 얘 진짜 나갔네',E07:'너 누구세요?'};
@@ -21,7 +21,7 @@ function usePlayback(){
    if(!evt){next(commitEvent);return}
    const run=++token.current;const timers:ReturnType<typeof setTimeout>[]=[];
    function later(cb:()=>void,ms:number){timers.push(setTimeout(()=>{if(run===token.current)cb()},ms))}
-   if(evt.type==='message'&&evt.actor!=='system'&&evt.actor!=='player'){
+   if(evt.type==='message'&&evt.actor!=='system'&&evt.actor!=='player'&&matchesConditions(evt.when,state.story)){
      later(()=>setTyping(evt.actor),Math.max(0,evt.delayMs/speed));
      later(()=>{setTyping(null);next(commitEvent)},(evt.delayMs+(evt.typingMs??0))/speed);
    }else if(evt.type==='pause')later(()=>next(commitEvent),evt.durationMs/speed);
@@ -30,9 +30,10 @@ function usePlayback(){
    return ()=>{token.current++;timers.forEach(clearTimeout)};
  },[state,ready,paused,speed,next]);
  const opts=visibleChoices(state);const choose=(id:string)=>{setDraft('');setMenu(false);setExitDialog(false);setPaused(false);next(s=>selectChoice(s,id));setView('chat')};
+ const leave=(quiet=false)=>{token.current++;setTyping(null);setDraft('');setMenu(false);setExitDialog(false);setPaused(false);next(s=>leaveChat(s,quiet));setView('chat')};
  const skip=()=>{token.current++;setTyping(null);next(s=>skipToBoundary(s));setView('chat')};
  const reset=()=>{token.current++;setTyping(null);setDraft('');setMenu(false);setExitDialog(false);setView('chat');setPaused(false);setState(init())};
- return {state,ready,speed,setSpeed,paused,setPaused,typing,opts,draft,setDraft,view,setView,menu,setMenu,exitDialog,setExitDialog,choose,skip,reset};
+ return {state,ready,speed,setSpeed,paused,setPaused,typing,opts,draft,setDraft,view,setView,menu,setMenu,exitDialog,setExitDialog,choose,leave,skip,reset};
 }
 export default function Game({onHome}:{onHome?:()=>void}){
  const g=usePlayback();const {state,ready,opts}=g;
@@ -59,7 +60,7 @@ export default function Game({onHome}:{onHome?:()=>void}){
  const actionOpts=opts.filter(c=>c.kind==='action');const replyOpts=opts.filter(c=>c.kind==='reply');
  const exitChoices=actionOpts.filter(c=>c.nextNodeId==='ch2_left');
  const leaving=exitChoices.length>0;
- const canLeave=(state.phase==='waiting_choice' && leaving) || (state.phase==='playing' && story[state.story.nodeId]?.chapter===1 && !!state.currentRoomId);
+ const canLeave=state.phase!=='completed' && !!state.currentRoomId && !!state.rooms[state.currentRoomId]?.joined;
  function msg(m:ChatMessage){if(m.actor==='system')return <div key={m.id} className="system-msg">{m.text}</div>;const mine=m.actor==='player';return <div key={m.id} className={'msg '+(mine?'mine':'')}>{!mine&&<CharacterAvatar actor={m.actor as 'minji'|'junho'|'taehoon'|'subin'} className="avatar"/>}<div className="msg-main">{!mine&&<div className="sender" >{NAMES[m.actor]}</div>}<div className="bubble">{m.text}</div></div></div>}
  if(!ready)return <div className="phone loading">채팅방 연결 중...</div>;
  return <div className="phone" aria-label="가상 단톡방 탈출 게임">
@@ -78,7 +79,7 @@ export default function Game({onHome}:{onHome?:()=>void}){
  state.phase==='waiting_choice'?<>{leaving && replyOpts.length===0?<><p className="hint">나갈 준비 됐어?</p><button className="send" onClick={()=>g.setExitDialog(true)}>채팅방 나가기</button></>:
  <><div className="suggestions">{replyOpts.map(c=><button data-choice-id={c.id} data-choice-kind={c.kind} className={g.draft===c.id?'selected':''} key={c.id} onClick={()=>g.setDraft(c.id)}>{c.label}</button>)}{actionOpts.map(c=><button key={c.id} data-choice-id={c.id} data-choice-kind={c.kind} onClick={()=>c.nextNodeId==='ch2_left'?g.setExitDialog(true):g.choose(c.id)}>{c.label}</button>)}</div>{replyOpts.length>0&&<div className="send-bar"><div className="fake-input">{replyOpts.find(c=>c.id===g.draft)?.replyText??'답장을 선택해 주세요'}</div><button disabled={!g.draft} onClick={()=>g.choose(g.draft)} aria-label="답장 전송">➤</button></div>}</>}
  </>:<div className="controls"><span>{g.typing?'입력 중...':'메시지를 기다리는 중...'}</span><button onClick={()=>g.setPaused(!g.paused)}>{g.paused?'재생':'일시정지'}</button><button onClick={()=>g.setSpeed(g.speed===1?1.5:1)}>{g.speed}×</button><button onClick={()=>g.skip()}>건너뛰기 »</button></div>}</div></>}
- {g.menu&&<div className="shade" onClick={()=>g.setMenu(false)}><aside className="drawer" onClick={e=>e.stopPropagation()}><button onClick={()=>g.setMenu(false)}>닫기 ✕</button>{onHome&&<button onClick={()=>{g.setMenu(false);onHome()}}>게임 시작 화면으로</button>}<h3>{room?.title??'가상 단톡방'}</h3><p>민지 · 준호 · 수빈 · 태훈 · 나</p><button onClick={()=>g.setMenu(false)}>알림 끄기 (연출)</button><button className="danger" disabled={!canLeave || roomId!==state.currentRoomId} onClick={()=>{g.setMenu(false);if(state.phase==='playing')g.skip();g.setExitDialog(true)}}>채팅방 나가기</button>{!canLeave&&<p className="hint">지금은 진행 중인 대화를 먼저 확인해 주세요.</p>}</aside></div>}
- {g.exitDialog&&<div className="shade" onClick={()=>g.setExitDialog(false)}><div className="modal" onClick={e=>e.stopPropagation()}><h3>정말 나갈 거야?</h3><p>게임 속 채팅방에서만 나가게 돼. 실제 메신저에는 영향 없어.</p>{exitChoices.map(c=><button key={c.id} data-choice-id={c.id} data-choice-kind={c.kind} className="send" onClick={()=>g.choose(c.id)}>{c.label}</button>)}<button onClick={()=>g.setExitDialog(false)}>취소</button>{!leaving&&<p className="hint">지금은 이 장면에서 나갈 수 없어. 대화를 조금 더 진행해 봐.</p>}</div></div>}
+ {g.menu&&<div className="shade" onClick={()=>g.setMenu(false)}><aside className="drawer" onClick={e=>e.stopPropagation()}><button onClick={()=>g.setMenu(false)}>닫기 ✕</button>{onHome&&<button onClick={()=>{g.setMenu(false);onHome()}}>게임 시작 화면으로</button>}<h3>{room?.title??'가상 단톡방'}</h3><p>민지 · 준호 · 수빈 · 태훈 · 나</p><button onClick={()=>g.setMenu(false)}>알림 끄기 (연출)</button><button className="danger" disabled={!canLeave || roomId!==state.currentRoomId} onClick={()=>{g.setMenu(false);g.setExitDialog(true)}}>채팅방 나가기</button>{!canLeave&&<p className="hint">지금은 진행 중인 대화를 먼저 확인해 주세요.</p>}</aside></div>}
+ {g.exitDialog&&<div className="shade" onClick={()=>g.setExitDialog(false)}><div className="modal" onClick={e=>e.stopPropagation()}><h3>정말 나갈 거야?</h3><p>게임 속 채팅방에서만 나가게 돼. 실제 메신저에는 영향 없어.</p><button data-choice-id="leave_silent" data-choice-kind="action" className="send" onClick={()=>g.leave(true)}>조용히 나가기</button><button data-choice-id="leave_normal" data-choice-kind="action" className="send" onClick={()=>g.leave(false)}>채팅방 나가기</button><button onClick={()=>g.setExitDialog(false)}>취소</button></div></div>}
  </div>;
 }

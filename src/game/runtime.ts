@@ -1,4 +1,4 @@
-import {story, initialState, available, choose, type State, type Actor, type Event, type Choice} from './story.ts';
+import {story, initialState, available, choose, type State, type Actor, type Event, type Choice, matchesConditions} from './story.ts';
 export type ChatMessage={id:string;roomId:string;actor:Actor;text:string;nodeId:string;eventIndex:number};
 export type ChatRoom={id:string;title:string;memberIds:Actor[];messages:ChatMessage[];joined:boolean;unread:number};
 export type SpectatorMessage=ChatMessage & {visibility:'spectator'};
@@ -15,12 +15,14 @@ export function commitEvent(s:Runtime):Runtime {
  const index=s.cursor;const event=n.events[index];const key=`${n.id}:${index}:${s.story.history.join(',')}`;
  if(s.deliveredKeys.includes(key))return {...s,cursor:index+1};
  const rooms={...s.rooms};let currentRoomId=s.currentRoomId;let order=[...s.roomOrder];const polls={...s.polls};let storyState=s.story;let spectator=s.spectator;
- if(event.type==='room'){
+ if(event.type==='message' && !matchesConditions(event.when,storyState)){/* Omit conditional dialogue without breaking cursor/replay */}
+ else if(event.type==='room'){
+  const eventRoomId=event.roomId==='current'?currentRoomId:event.roomId;
   if(event.operation==='create'){
    if(!rooms[event.roomId]){rooms[event.roomId]={id:event.roomId,title:event.title??event.roomId,memberIds:[...members],messages:[],joined:true,unread:0};order=[event.roomId,...order];storyState={...storyState,stats:{...storyState.stats,createdRooms:storyState.stats.createdRooms+1}};}
    rooms[event.roomId]={...rooms[event.roomId],joined:true};currentRoomId=event.roomId;
   } else if(event.operation==='enter') { if(!rooms[event.roomId])throw Error('Enter unknown room '+event.roomId);rooms[event.roomId]={...rooms[event.roomId],joined:true};currentRoomId=event.roomId; }
-  else if(event.operation==='leave') { if(rooms[event.roomId])rooms[event.roomId]={...rooms[event.roomId],joined:false,memberIds:rooms[event.roomId].memberIds.filter(m=>m!=='player')}; if(currentRoomId===event.roomId)currentRoomId=null; if(n.endingId==='E06'||n.endingId==='E07') spectator={roomId:event.roomId,messages:[],active:true}; }
+  else if(event.operation==='leave') { if(eventRoomId&&rooms[eventRoomId])rooms[eventRoomId]={...rooms[eventRoomId],joined:false,memberIds:rooms[eventRoomId].memberIds.filter(m=>m!=='player')}; if(currentRoomId===eventRoomId)currentRoomId=null; if((n.endingId==='E06'||n.endingId==='E07')&&eventRoomId) spectator={roomId:eventRoomId,messages:[],active:true}; }
   else if(event.operation==='rename') {if(!rooms[event.roomId])throw Error('Rename unknown room');rooms[event.roomId]={...rooms[event.roomId],title:event.title??rooms[event.roomId].title};}
  }else if(event.type==='message'){
   // Ending spectators can observe their original room even after player leaves; event belongs to the last active room.
@@ -49,6 +51,15 @@ export function selectChoice(s:Runtime,id:string):Runtime {
   next={...s,rooms:{...s.rooms,[roomId]:{...r,messages:[...r.messages,msg]}}};
  }
  return {...next,story:choose(next.story,id),cursor:0,phase:'playing',pendingChoiceId:null};
+}
+/** Exit is a player action, not a story choice. It works while messages are playing. */
+export function leaveChat(s:Runtime,quiet=false):Runtime {
+ if(s.phase==='completed'||!s.currentRoomId||!s.rooms[s.currentRoomId]?.joined)return s;
+ const chapter=currentNode(s).chapter;
+ const target=chapter===1?'ch2_left':chapter<=3?'ch3_manual_leave':chapter===4?'ch4_manual_leave':'ending_E03';
+ const history=[...s.story.history,quiet?'manual_leave_quiet':'manual_leave'];
+ const stats={...s.story.stats,escapeAttempts:s.story.stats.escapeAttempts+1,quiet:s.story.stats.quiet+(quiet?1:0)};
+ return {...s,story:{...s.story,nodeId:target,history,stats},cursor:0,phase:'playing',pendingChoiceId:null};
 }
 export function skipToBoundary(s:Runtime,maxEvents=500):Runtime{let next=s;for(let i=0;i<maxEvents&&next.phase==='playing';i++)next=commitEvent(next);if(next.phase==='playing')throw Error('Skip limit exceeded');return next;}
 export const persist=(s:Runtime)=>JSON.stringify({schemaVersion:1,contentVersion:'v19',state:s});
