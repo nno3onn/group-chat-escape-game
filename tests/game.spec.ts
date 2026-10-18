@@ -2,32 +2,37 @@ import { test, expect } from '@playwright/test';
 
 test('first chat and skip reach a user interaction', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', {name: /^(시작하기|이어하기)$/}).click();
+  await page.getByRole('button', {name: '시작하기'}).click();
   await expect(page.getByLabel('가상 단톡방 탈출 게임')).toBeVisible();
   await page.getByRole('button', {name: /건너뛰기/}).click();
   await expect(page.getByText('답장을 선택해 주세요')).toBeVisible();
   await expect(page.getByRole('button', {name:'답장 전송'})).toBeDisabled();
 });
 
-test('local progress survives reload', async ({ page }) => {
+test('starting again begins a new game, not restored progress', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', {name: /^(시작하기|이어하기)$/}).click();
+  await page.getByRole('button', {name: '시작하기'}).click();
   await page.getByRole('button', {name: /건너뛰기/}).click();
-  await expect(page.getByText('답장을 선택해 주세요')).toBeVisible();
+  await expect(page.locator('[data-choice-id="intro_busy"]')).toBeVisible();
+  await page.locator('[data-choice-id="intro_busy"]').click();
+  await page.getByRole('button', {name:'답장 전송'}).click();
+  await expect(page.locator('.mine .bubble')).toContainText('나 이번 주말 바쁠 듯');
+  // Reload returns to the landing page; '시작하기' intentionally discards saved progress.
   await page.reload();
-  await page.getByRole('button', {name: '이어하기'}).click();
-  await expect(page.getByText('답장을 선택해 주세요')).toBeVisible();
+  await page.getByRole('button', {name:'시작하기'}).click();
+  await page.getByRole('button', {name: /건너뛰기/}).click();
+  await expect(page.locator('[data-choice-id="intro_busy"]')).toBeVisible();
+  await expect(page.locator('.mine .bubble')).toHaveCount(0);
 });
 
 test('narrow viewport has no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({width:320,height:640});
   await page.goto('/');
-  await page.getByRole('button', {name: /^(시작하기|이어하기)$/}).click();
+  await page.getByRole('button', {name:'시작하기'}).click();
   await expect(page.getByLabel('가상 단톡방 탈출 게임')).toBeVisible();
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth);
   expect(overflow).toBe(false);
 });
-
 
 test('pre-game info opens in a modal, without navigating away', async ({page}) => {
   await page.goto('/');

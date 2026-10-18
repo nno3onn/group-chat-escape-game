@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Full browser runs use the actual UI (not injected game state).
-// Skip is only used to bypass animation delays, never user decisions.
 const cases: { ending: string; choices: string[] }[] = [
   { ending: 'E01', choices: ['intro_busy','leave_silent','reason_finger','finger_accept','ch4_admin','final_admin'] },
   { ending: 'E02', choices: ['intro_unsure','leave_normal','reason_finger','finger_refuse','ch4_block','final_everyone'] },
@@ -25,30 +23,25 @@ async function skipToChoice(page: import('@playwright/test').Page) {
 }
 
 async function performChoice(page: import('@playwright/test').Page, id: string) {
-  const choice = page.locator(`[data-choice-id="${id}"]`);
+  const choice = page.locator(`.modal [data-choice-id="${id}"]`);
   if (id.startsWith('leave_')) {
-    const opener = page.locator('.composer [data-choice-id="' + id + '"]');
-    if (await opener.isVisible().catch(() => false)) {
-      await opener.click();
-    } else {
-      await page.locator('.header button[aria-label="채팅방 메뉴"]').click();
-      await page.locator('.drawer .danger').click();
-    }
-    const modalChoice = page.locator('.shade .modal').locator(`[data-choice-id="${id}"]`);
-    await expect(modalChoice).toBeVisible();
-    await modalChoice.click();
+    const direct = page.locator(`.suggestions [data-choice-id="${id}"]`);
+    if (await direct.isVisible().catch(() => false)) await direct.click();
+    else await page.getByRole('button',{name:'채팅방 나가기'}).first().click();
+    await expect(choice).toBeVisible();
+    await choice.click();
     return;
   }
-  await expect(choice).toBeVisible();
-  const kind = await choice.getAttribute('data-choice-kind');
+  const outside = page.locator(`.suggestions [data-choice-id="${id}"]`);
+  await expect(outside).toBeVisible();
+  const kind = await outside.getAttribute('data-choice-kind');
   if (kind !== 'reply' && kind !== 'action') throw new Error(`Unknown choice kind for ${id}: ${kind}`);
-  await choice.click();
+  await outside.click();
   if (kind === 'reply') {
     const send = page.getByRole('button', { name: '답장 전송' });
     await expect(send).toBeEnabled();
     await send.click();
   }
-
 }
 
 test.describe('all seven story endings by full UI interaction', () => {
@@ -62,7 +55,7 @@ test.describe('all seven story endings by full UI interaction', () => {
       }
       await skipToChoice(page);
       await expect(page.locator(`.ending-${route.ending}`)).toBeVisible();
-      await expect(page.getByRole('button', { name: /다시 탈출하기/ })).toBeVisible();
+      await expect(page.getByRole('button', { name: '다시 시작하기' })).toBeVisible();
     });
   }
 });
