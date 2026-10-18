@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState,useCallback} from 'react';
 import {init,commitEvent,currentNode,visibleChoices,selectChoice,skipToBoundary,persist,restore,type Runtime,type ChatMessage} from '../game/runtime';
-import type {Event} from '../game/story';
+import {story, type Event} from '../game/story';
 const SAVE='talkfail-v19';
 const NAMES:Record<string,string>={minji:'민지',junho:'준호',subin:'수빈',taehoon:'태훈',player:'나',system:'시스템'};
 const ENDINGS:Record<string,string>={E01:'탈출하려다 방장 됨',E02:'나 빼고 다 나감',E03:'재초대가 직업이 됨',E04:'아무도 나간 걸 몰랐다',E05:'단톡방 자체가 탈퇴함',E06:'야 얘 진짜 나갔네',E07:'너 누구세요?'};
@@ -62,7 +62,7 @@ export default function Game(){
  return <div className="phone" aria-label="가상 단톡방 탈출 게임">
  <div className="phone-top"><div className="phone-clock">톡망함 · 게임</div><span>●●● ▰</span></div>
  {g.view==='list' && state.phase!=='completed'?<><header className="header"><button onClick={()=>g.setView('chat')} aria-label="돌아가기">‹</button><strong>채팅</strong><span className="fake">GAME</span></header><div className="rooms">{state.roomOrder.filter(k=>state.rooms[k].joined).map(k=><button key={k} className="room-line" onClick={()=>{setSelectedRoom(k);g.setView('chat')}}><span className="group-avatar">💬</span><span><strong>{state.rooms[k].title}</strong><small>{state.rooms[k].messages.at(-1)?.text??'새 채팅방'}</small></span></button>)}{state.roomOrder.every(k=>!state.rooms[k].joined)&&<p className="empty">채팅방이 없습니다. 드디어 자유...?</p>}</div><button className="text-button" onClick={()=>{setSelectedRoom(null);g.setView('chat')}}>진행 중인 이야기로 돌아가기</button></>:
- <><header className="header"><button onClick={()=>{setSelectedRoom(null);g.setView('list')}} aria-label="채팅 목록">‹</button><div className="head-title"><strong>{observing?'퇴장 후 대화 · 관전':room?.title??'채팅방을 나왔습니다'}</strong><small>가상 단톡방 · {state.story.chapter} / 5장</small></div><button onClick={()=>g.setMenu(true)} aria-label="채팅방 메뉴">☰</button></header>
+ <><header className="header"><button onClick={()=>{setSelectedRoom(null);g.setView('list')}} aria-label="채팅 목록">‹</button><div className="head-title"><strong>{observing?'퇴장 후 대화 · 관전':room?.title??'채팅방을 나왔습니다'}</strong><small>가상 단톡방 · {story[state.story.nodeId]?.chapter ?? 1} / 5장</small></div><button onClick={()=>g.setMenu(true)} aria-label="채팅방 메뉴">☰</button></header>
  <div className="chat" ref={scroller} onScroll={()=>{const el=scroller.current;if(el)setNearBottom(el.scrollHeight-el.scrollTop-el.clientHeight<90)}}>
  {observing&&<div className="spectator-banner" role="status">엔딩 연출 · 이미 퇴장한 방의 대화입니다. 실제 참가 상태가 아닙니다.</div>}<div className="date-chip">오늘</div>{roomMsgs.map(msg)}
  {g.typing && isActiveRoom && !observing &&<div className="typing"><span>{NAMES[g.typing]} 입력 중</span><span className="dots">● ● ●</span></div>}
