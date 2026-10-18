@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {init,commitEvent,selectChoice,skipToBoundary,persist,restore,PlaybackScheduler} from './runtime.ts';
+let s=init();assert.equal(s.rooms.original.title,'주말에 뭐함');
+s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');assert.equal(s.rooms.original.messages.length,14);
+s=selectChoice(s,'intro_ignore');s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');
+s=selectChoice(s,'leave_silent');s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');assert.equal(s.currentRoomId,'restore');assert.equal(s.rooms.original.joined,false);assert.equal(s.rooms.restore.title,'주말에 뭐함 (복구)');
+s=selectChoice(s,'reason_silence');s=skipToBoundary(s);s=selectChoice(s,'silent_identity');s=skipToBoundary(s);s=selectChoice(s,'ch4_identity');s=skipToBoundary(s);assert(s.story.flags.includes('identityDoubt'));
+s=selectChoice(s,'final_identity');s=skipToBoundary(s);assert.equal(s.phase,'completed');assert.equal(s.endingId,'E07');
+assert.equal(restore(persist(s)).endingId,'E07');assert.equal(s.rooms.restore.messages.filter(m=>m.id.startsWith('reply:')).length>0,true);
+let t=init();t=commitEvent(t);assert.equal(t.cursor,1);assert.equal(t.rooms.original.messages.length,1);
+const scheduler=new PlaybackScheduler();let fired=0;scheduler.schedule(20,()=>fired++);scheduler.cancel();await new Promise(r=>setTimeout(r,35));assert.equal(fired,0);
+scheduler.schedule(50,()=>fired++);scheduler.skip();assert.equal(fired,1);await new Promise(r=>setTimeout(r,60));assert.equal(fired,1);
+console.log('runtime smoke tests PASS: E07, room leave/invite, local save, cancellation/skip');
