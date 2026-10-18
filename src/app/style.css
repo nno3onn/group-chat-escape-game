@@ -37,3 +37,19 @@ body:has(.game-stage) .site-footer{display:none}
 .face-row .character-avatar.face{width:44px;height:44px;border:3px solid #faf9f5;margin-left:-6px;box-shadow:0 2px 7px #0000000c}
 .game-stage .sender{color:#485660;font-weight:700}
 @media(max-width:500px){.game-stage .character-avatar.avatar{width:34px;height:34px}}
+
+/* v26: gentle polish of the existing landing — retain original hierarchy and layout */
+.landing{background:radial-gradient(ellipse 76% 48% at 50% 18%,#fff5db 0%,#fcfaf6 60%,#f7f8f7 100%)}
+.hero-icon{border-radius:25px;background:linear-gradient(145deg,#ffe9b1,#ffdc79);box-shadow:0 12px 28px #b68c3430, inset 0 1px 1px #fff8}
+.hero h1{color:#262b30;letter-spacing:-.075em}
+.hero-subtitle{color:#65676b;font-size:clamp(19px,4vw,22px)}
+.hero-desc{color:#70777b;line-height:1.8}
+.face-row{margin:11px 0 6px}
+.face-row .character-avatar.face{width:46px;height:46px;border:3px solid #faf9f5;box-shadow:0 6px 15px #36313213;transition:transform .2s ease}
+.face-row .character-avatar.face:hover{transform:translateY(-3px)}
+.primary-button{min-height:56px;background:#ffe28c;border-radius:17px;box-shadow:0 6px 0 #f5ca69,0 14px 23px #d9b65922;transition:transform .15s ease,box-shadow .15s ease}
+.primary-button:active{transform:translateY(3px);box-shadow:0 3px 0 #f5ca69,0 7px 17px #d9b65922}
+.primary-button:hover{background:#ffdc76}
+.hero-links button{text-decoration:none;color:#657071;font-weight:600}
+.hero-links button:hover{text-decoration:underline;text-underline-offset:5px}
+@media(prefers-reduced-motion:reduce){.face-row .character-avatar.face,.primary-button{transition:none}}
