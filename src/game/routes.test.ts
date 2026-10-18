@@ -38,3 +38,6 @@ for (const [ending,choices] of routes) {
   }
   console.log(`${ending} complete, ${choices.length} interactions`);
 }
+
+// Regression: staying in the conversation also advances the chapter.
+import './balanced-flow.test.ts';

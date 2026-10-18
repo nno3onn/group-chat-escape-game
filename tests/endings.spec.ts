@@ -27,9 +27,16 @@ async function skipToChoice(page: import('@playwright/test').Page) {
 async function performChoice(page: import('@playwright/test').Page, id: string) {
   const choice = page.locator(`[data-choice-id="${id}"]`);
   if (id.startsWith('leave_')) {
-    await page.getByRole('button', { name: '채팅방 나가기' }).first().click();
-    await expect(choice).toBeVisible();
-    await choice.click();
+    const opener = page.locator('.composer [data-choice-id="' + id + '"]');
+    if (await opener.isVisible().catch(() => false)) {
+      await opener.click();
+    } else {
+      await page.locator('.header button[aria-label="채팅방 메뉴"]').click();
+      await page.locator('.drawer .danger').click();
+    }
+    const modalChoice = page.locator('.shade .modal').locator(`[data-choice-id="${id}"]`);
+    await expect(modalChoice).toBeVisible();
+    await modalChoice.click();
     return;
   }
   await expect(choice).toBeVisible();
