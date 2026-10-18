@@ -1,9 +1,11 @@
 'use client';
+import AdSlot from './AdSlot';
 import {useEffect,useRef,useState,useCallback} from 'react';
 import {init,commitEvent,currentNode,visibleChoices,selectChoice,skipToBoundary,persist,restore,type Runtime,type ChatMessage} from '../game/runtime';
 import {story, type Event} from '../game/story';
 const SAVE='talkfail-v19';
 const NAMES:Record<string,string>={minji:'민지',junho:'준호',subin:'수빈',taehoon:'태훈',player:'나',system:'시스템'};
+const COLORS:Record<string,string>={minji:'#FF5C8A',junho:'#4C8DFF',taehoon:'#FF9F43',subin:'#35B56A'};
 const ENDINGS:Record<string,string>={E01:'탈출하려다 방장 됨',E02:'나 빼고 다 나감',E03:'재초대가 직업이 됨',E04:'아무도 나간 걸 몰랐다',E05:'단톡방 자체가 탈퇴함',E06:'야 얘 진짜 나갔네',E07:'너 누구세요?'};
 function usePlayback(){
  const [state,setState]=useState<Runtime>(()=>init()); const [ready,setReady]=useState(false);
@@ -32,7 +34,7 @@ function usePlayback(){
  const reset=()=>{token.current++;setTyping(null);setDraft('');setMenu(false);setExitDialog(false);setView('chat');setPaused(false);setState(init())};
  return {state,ready,speed,setSpeed,paused,setPaused,typing,opts,draft,setDraft,view,setView,menu,setMenu,exitDialog,setExitDialog,choose,skip,reset};
 }
-export default function Game(){
+export default function Game({onHome}:{onHome?:()=>void}){
  const g=usePlayback();const {state,ready,opts}=g;
  const bottomRef=useRef<HTMLDivElement>(null);const scroller=useRef<HTMLDivElement>(null);const [nearBottom,setNearBottom]=useState(true);
  // Each newly opened room should start at the latest messages, not inherit the previous room's scroll position.
@@ -57,10 +59,10 @@ export default function Game(){
  const actionOpts=opts.filter(c=>c.kind==='action');const replyOpts=opts.filter(c=>c.kind==='reply');
  const leaving=actionOpts.some(c=>c.id.startsWith('leave_'));
  const canLeave=state.phase==='waiting_choice' && leaving;
- function msg(m:ChatMessage){if(m.actor==='system')return <div key={m.id} className="system-msg">{m.text}</div>;const mine=m.actor==='player';return <div key={m.id} className={'msg '+(mine?'mine':'')}><div className="avatar">{mine?'':NAMES[m.actor]?.[0]}</div><div className="msg-main">{!mine&&<div className="sender">{NAMES[m.actor]}</div>}<div className="bubble">{m.text}</div></div></div>}
+ function msg(m:ChatMessage){if(m.actor==='system')return <div key={m.id} className="system-msg">{m.text}</div>;const mine=m.actor==='player';return <div key={m.id} className={'msg '+(mine?'mine':'')}><div className="avatar" style={!mine?{backgroundColor:COLORS[m.actor]??'#9aa4ac'}:undefined}>{mine?'':NAMES[m.actor]?.[0]}</div><div className="msg-main">{!mine&&<div className="sender" style={{color:COLORS[m.actor]??'#52606b'}}>{NAMES[m.actor]}</div>}<div className="bubble">{m.text}</div></div></div>}
  if(!ready)return <div className="phone loading">채팅방 연결 중...</div>;
  return <div className="phone" aria-label="가상 단톡방 탈출 게임">
- <div className="phone-top"><div className="phone-clock">톡망함 · 게임</div><span>●●● ▰</span></div>
+ 
  {g.view==='list' && state.phase!=='completed'?<><header className="header"><button onClick={()=>g.setView('chat')} aria-label="돌아가기">‹</button><strong>채팅</strong><span className="fake">GAME</span></header><div className="rooms">{state.roomOrder.filter(k=>state.rooms[k].joined).map(k=><button key={k} className="room-line" onClick={()=>{setSelectedRoom(k);g.setView('chat')}}><span className="group-avatar">💬</span><span><strong>{state.rooms[k].title}</strong><small>{state.rooms[k].messages.at(-1)?.text??'새 채팅방'}</small></span></button>)}{state.roomOrder.every(k=>!state.rooms[k].joined)&&<p className="empty">채팅방이 없습니다. 드디어 자유...?</p>}</div><button className="text-button" onClick={()=>{setSelectedRoom(null);g.setView('chat')}}>진행 중인 이야기로 돌아가기</button></>:
  <><header className="header"><button onClick={()=>{setSelectedRoom(null);g.setView('list')}} aria-label="채팅 목록">‹</button><div className="head-title"><strong>{observing?'퇴장 후 대화 · 관전':room?.title??'채팅방을 나왔습니다'}</strong><small>가상 단톡방 · {story[state.story.nodeId]?.chapter ?? 1} / 5장</small></div><button onClick={()=>g.setMenu(true)} aria-label="채팅방 메뉴">☰</button></header>
  <div className="chat" ref={scroller} onScroll={()=>{const el=scroller.current;if(el)setNearBottom(el.scrollHeight-el.scrollTop-el.clientHeight<90)}}>
@@ -68,14 +70,14 @@ export default function Game(){
  {g.typing && isActiveRoom && !observing &&<div className="typing"><span>{NAMES[g.typing]} 입력 중</span><span className="dots">● ● ●</span></div>}
  {!room&&!observing&&<div className="system-msg">채팅방에서 나왔습니다. 새로운 초대를 기다리는 중...</div>}
  <div ref={bottomRef}/></div>
- {state.phase==='completed' && <section className={'ending-sheet ending-'+state.endingId} aria-labelledby="ending-title"><div className="ending-kicker">GAME OVER · {ending?.status}</div><div className="ending-emblem">{state.endingId==='E04'?'◌':state.endingId==='E06'?'…':state.endingId==='E07'?'?':'↩'}</div><h2 id="ending-title">{ENDINGS[state.endingId??'']}</h2><blockquote>“{ending?.quote}”</blockquote><p>{ending?.detail}</p><div className="ending-stats"><span>탈출 시도 <strong>{state.story.stats.escapeAttempts}회</strong></span><span>생성된 방 <strong>{state.story.stats.createdRooms}개</strong></span></div><small>실제 메신저와 무관한 가상 게임 결과</small></section>}
+ {state.phase==='completed' && <section className={'ending-sheet ending-'+state.endingId} aria-labelledby="ending-title"><div className="ending-kicker">GAME OVER · {ending?.status}</div><div className="ending-emblem">{state.endingId==='E04'?'◌':state.endingId==='E06'?'…':state.endingId==='E07'?'?':'↩'}</div><h2 id="ending-title">{ENDINGS[state.endingId??'']}</h2><blockquote>“{ending?.quote}”</blockquote><p>{ending?.detail}</p><div className="ending-stats"><span>탈출 시도 <strong>{state.story.stats.escapeAttempts}회</strong></span><span>생성된 방 <strong>{state.story.stats.createdRooms}개</strong></span></div><small>실제 메신저와 무관한 가상 게임 결과</small><div className="ending-ad-container"><AdSlot placement="ending" /></div></section>}
  {!nearBottom&&<button className="new-msg" onClick={()=>{setNearBottom(true);scroller.current?.scrollTo({top:scroller.current.scrollHeight,behavior:'auto'})}}>↓ 최신 메시지 보기</button>}
  <div className="composer">
- {state.phase==='completed'?<div className="ending-actions"><button onClick={()=>g.reset()}>다시 탈출하기 ↻</button><button onClick={()=>navigator.clipboard?.writeText(`카톡방탈출 — 나 좀 나가게 해줘 ㅋㅋㅋ\n${ENDINGS[state.endingId??'']}\n${ending?.detail??''}`)}>결과 복사</button></div>: !isActiveRoom?<div className="inactive-room"><span>이전 채팅방을 보는 중</span><button onClick={()=>{setSelectedRoom(null);g.setView('chat')}}>진행 중인 방으로 이동</button></div>:
+ {state.phase==='completed'?<div className="ending-actions"><button onClick={()=>g.reset()}>다시 탈출하기 ↻</button><button onClick={()=>navigator.clipboard?.writeText(`카톡방탈출 — 나 좀 나가게 해줘\n${ENDINGS[state.endingId??'']}\n${ending?.detail??''}`)}>결과 복사</button></div>: !isActiveRoom?<div className="inactive-room"><span>이전 채팅방을 보는 중</span><button onClick={()=>{setSelectedRoom(null);g.setView('chat')}}>진행 중인 방으로 이동</button></div>:
  state.phase==='waiting_choice'?<>{leaving?<><p className="hint">나갈 준비 됐어?</p><button className="send" onClick={()=>g.setExitDialog(true)}>채팅방 나가기</button></>:
  <><div className="suggestions">{replyOpts.map(c=><button data-choice-id={c.id} data-choice-kind={c.kind} className={g.draft===c.id?'selected':''} key={c.id} onClick={()=>g.setDraft(c.id)}>{c.label}</button>)}{actionOpts.map(c=><button key={c.id} data-choice-id={c.id} data-choice-kind={c.kind} onClick={()=>g.choose(c.id)}>{c.label}</button>)}</div>{replyOpts.length>0&&<div className="send-bar"><div className="fake-input">{replyOpts.find(c=>c.id===g.draft)?.replyText??'답장을 선택해 주세요'}</div><button disabled={!g.draft} onClick={()=>g.choose(g.draft)} aria-label="답장 전송">➤</button></div>}</>}
  </>:<div className="controls"><span>{g.typing?'입력 중...':'메시지를 기다리는 중...'}</span><button onClick={()=>g.setPaused(!g.paused)}>{g.paused?'재생':'일시정지'}</button><button onClick={()=>g.setSpeed(g.speed===1?1.5:1)}>{g.speed}×</button><button onClick={()=>g.skip()}>건너뛰기 »</button></div>}</div></>}
- {g.menu&&<div className="shade" onClick={()=>g.setMenu(false)}><aside className="drawer" onClick={e=>e.stopPropagation()}><button onClick={()=>g.setMenu(false)}>닫기 ✕</button><h3>{room?.title??'가상 단톡방'}</h3><p>민지 · 준호 · 수빈 · 태훈 · 나</p><button onClick={()=>g.setMenu(false)}>알림 끄기 (연출)</button><button className="danger" disabled={!canLeave || roomId!==state.currentRoomId} onClick={()=>{g.setMenu(false);g.setExitDialog(true)}}>채팅방 나가기</button>{!canLeave&&<p className="hint">지금은 진행 중인 대화를 먼저 확인해 주세요.</p>}</aside></div>}
+ {g.menu&&<div className="shade" onClick={()=>g.setMenu(false)}><aside className="drawer" onClick={e=>e.stopPropagation()}><button onClick={()=>g.setMenu(false)}>닫기 ✕</button>{onHome&&<button onClick={()=>{g.setMenu(false);onHome()}}>게임 시작 화면으로</button>}<h3>{room?.title??'가상 단톡방'}</h3><p>민지 · 준호 · 수빈 · 태훈 · 나</p><button onClick={()=>g.setMenu(false)}>알림 끄기 (연출)</button><button className="danger" disabled={!canLeave || roomId!==state.currentRoomId} onClick={()=>{g.setMenu(false);g.setExitDialog(true)}}>채팅방 나가기</button>{!canLeave&&<p className="hint">지금은 진행 중인 대화를 먼저 확인해 주세요.</p>}</aside></div>}
  {g.exitDialog&&<div className="shade"><div className="modal"><h3>정말 나갈 거야?</h3><p>게임 속 채팅방에서만 나가게 돼. 실제 메신저에는 영향 없어.</p>{actionOpts.filter(c=>c.id.startsWith('leave_')).map(c=><button key={c.id} data-choice-id={c.id} data-choice-kind={c.kind} className="send" onClick={()=>g.choose(c.id)}>{c.label}</button>)}<button onClick={()=>g.setExitDialog(false)}>취소</button>{!leaving&&<p className="hint">지금은 이 장면에서 나갈 수 없어. 대화를 조금 더 진행해 봐.</p>}</div></div>}
  </div>;
 }

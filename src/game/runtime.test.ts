@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {init,commitEvent,selectChoice,skipToBoundary,persist,restore,PlaybackScheduler} from './runtime.ts';
 let s=init();assert.equal(s.rooms.original.title,'주말에 뭐함');
-s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');assert.equal(s.rooms.original.messages.length,14);
+s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');assert.equal(s.rooms.original.messages.length,19);
 s=selectChoice(s,'intro_ignore');s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');
 s=selectChoice(s,'leave_silent');s=skipToBoundary(s);assert.equal(s.phase,'waiting_choice');assert.equal(s.currentRoomId,'restore');assert.equal(s.rooms.original.joined,false);assert.equal(s.rooms.restore.title,'주말에 뭐함 (복구)');
 s=selectChoice(s,'reason_silence');s=skipToBoundary(s);s=selectChoice(s,'silent_identity');s=skipToBoundary(s);s=selectChoice(s,'ch4_identity');s=skipToBoundary(s);assert(s.story.flags.includes('identityDoubt'));

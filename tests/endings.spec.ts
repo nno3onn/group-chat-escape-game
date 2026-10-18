@@ -48,6 +48,7 @@ test.describe('all seven story endings by full UI interaction', () => {
   for (const route of cases) {
     test(`${route.ending} is playable`, async ({ page }) => {
       await page.goto('/');
+      await page.getByRole('button', {name: '시작하기'}).click();
       for (const id of route.choices) {
         await skipToChoice(page);
         await performChoice(page, id);

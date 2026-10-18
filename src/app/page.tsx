@@ -1,3 +1,2 @@
-import Game from './Game';
-import Link from 'next/link';
-export default function Page(){return <main className="page"><section className="intro"><span className="eyebrow">선택형 단톡방 코미디 게임</span><h1>카톡방탈출</h1><p className="intro-tagline">나 좀 나가게 해줘 ㅋㅋㅋ</p><p>나갔다고 끝이 아니다. 친구들의 단톡방에서 무사히 빠져나올 수 있을까? 답장과 행동을 고르면 이야기가 달라져요. 전체 5개 챕터, 서로 다른 7개 엔딩.</p><div className="intro-links"><Link href="/how-to-play">플레이 방법</Link><Link href="/about">게임 소개</Link></div></section><Game/><section className="after-game"><h2>어떤 탈출이 기다릴까요?</h2><p>조용히 빠져나갈 수도, 방장이 될 수도 있어요. 선택마다 달라지는 결말을 직접 확인해 보세요.</p><p>로그인 없이 플레이할 수 있으며 게임 진행 상태는 이 브라우저에 저장됩니다. 실제 친구에게 메시지가 전송되지는 않아요.</p></section></main>}
+import Landing from './Landing';
+export default function Page(){return <Landing/>;}
