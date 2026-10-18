@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import Game from './Game';
 import AdSlot from './AdSlot';
+import CharacterAvatar from './CharacterAvatar';
 
 type Topic='how'|'about'|null;
 export default function Landing(){
@@ -21,7 +22,7 @@ export default function Landing(){
     <p className="hero-subtitle">나 좀 나가게 해줘</p>
     <p className="hero-desc">친구들은 왜 자꾸 다시 초대하는 걸까?<br/>대답을 고르고, 채팅방에서 탈출해 봐.</p>
     <div className="face-row" aria-label="등장인물: 민지, 준호, 태훈, 수빈">
-      <span className="face face-minji">민</span><span className="face face-junho">준</span><span className="face face-taehoon">태</span><span className="face face-subin">수</span>
+      <CharacterAvatar actor="minji" className="face"/><CharacterAvatar actor="junho" className="face"/><CharacterAvatar actor="taehoon" className="face"/><CharacterAvatar actor="subin" className="face"/>
     </div>
     <div className="hero-buttons">
        {hasSave?<><button className="primary-button" onClick={()=>setStarted(true)}>이어하기 <span aria-hidden="true">→</span></button><button className="secondary-button" onClick={newGame}>처음부터 시작</button></>:<button className="primary-button" onClick={()=>setStarted(true)}>시작하기 <span aria-hidden="true">→</span></button>}
