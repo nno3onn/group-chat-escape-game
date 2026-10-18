@@ -88,3 +88,8 @@ body:has(.game-stage) .site-footer{display:none}
   }
   .game-stage .controls > button { font-size: 10px; }
 }
+
+/* v28: center the cancel action in the room-exit confirmation dialog */
+.modal > button:not(.send) {
+  text-align: center;
+}
