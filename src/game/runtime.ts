@@ -19,8 +19,11 @@ export function commitEvent(s:Runtime):Runtime {
  else if(event.type==='room'){
   const eventRoomId=event.roomId==='current'?currentRoomId:event.roomId;
   if(event.operation==='create'){
-   if(!rooms[event.roomId]){rooms[event.roomId]={id:event.roomId,title:event.title??event.roomId,memberIds:[...members],messages:[],joined:true,unread:0};order=[event.roomId,...order];storyState={...storyState,stats:{...storyState.stats,createdRooms:storyState.stats.createdRooms+1}};}
-   rooms[event.roomId]={...rooms[event.roomId],joined:true};currentRoomId=event.roomId;
+   // A re-invite is a new room, not an old room whose chat history can reappear.
+   const freshId = ['manual-reinvite','final-reinvite'].includes(event.roomId)
+    ? `${event.roomId}-${storyState.stats.escapeAttempts}` : event.roomId;
+   if(!rooms[freshId]){rooms[freshId]={id:freshId,title:event.title??event.roomId,memberIds:[...members],messages:[],joined:true,unread:0};order=[freshId,...order];storyState={...storyState,stats:{...storyState.stats,createdRooms:storyState.stats.createdRooms+1}};}
+   rooms[freshId]={...rooms[freshId],joined:true};currentRoomId=freshId;
   } else if(event.operation==='enter') { if(!rooms[event.roomId])throw Error('Enter unknown room '+event.roomId);rooms[event.roomId]={...rooms[event.roomId],joined:true};currentRoomId=event.roomId; }
   else if(event.operation==='leave') { if(eventRoomId&&rooms[eventRoomId])rooms[eventRoomId]={...rooms[eventRoomId],joined:false,memberIds:rooms[eventRoomId].memberIds.filter(m=>m!=='player')}; if(currentRoomId===eventRoomId)currentRoomId=null; if((n.endingId==='E06'||n.endingId==='E07')&&eventRoomId) spectator={roomId:eventRoomId,messages:[],active:true}; }
   else if(event.operation==='rename') {if(!rooms[event.roomId])throw Error('Rename unknown room');rooms[event.roomId]={...rooms[event.roomId],title:event.title??rooms[event.roomId].title};}
@@ -53,13 +56,26 @@ export function selectChoice(s:Runtime,id:string):Runtime {
  return {...next,story:choose(next.story,id),cursor:0,phase:'playing',pendingChoiceId:null};
 }
 /** Exit is a player action, not a story choice. It works while messages are playing. */
+/** Exit remains available at any time, but spamming exit cannot unlock a success ending. */
 export function leaveChat(s:Runtime,quiet=false):Runtime {
  if(s.phase==='completed'||!s.currentRoomId||!s.rooms[s.currentRoomId]?.joined)return s;
+ const attempts=s.story.stats.escapeAttempts+1;
  const chapter=currentNode(s).chapter;
- const target=chapter===1?'ch2_left':chapter<=3?'ch3_manual_leave':chapter===4?'ch4_manual_leave':'ending_E03';
+ // Repeated quits trigger the existing QA failure ending early instead of advancing chapters.
+ const repeatedQuits=s.story.history.filter(id=>id==='manual_leave'||id==='manual_leave_quiet').length;
+ const target=repeatedQuits>=2||chapter===5?'ending_E03':chapter===1?'ch2_left':chapter<=3?'ch3_manual_leave':'ch4_manual_leave';
  const history=[...s.story.history,quiet?'manual_leave_quiet':'manual_leave'];
- const stats={...s.story.stats,escapeAttempts:s.story.stats.escapeAttempts+1,quiet:s.story.stats.quiet+(quiet?1:0)};
- return {...s,story:{...s.story,nodeId:target,history,stats},cursor:0,phase:'playing',pendingChoiceId:null};
+ // Quietly clicking the exit button is not the same as earning genuine silence/trust.
+ const stats={...s.story.stats,escapeAttempts:attempts};
+ const oldRoomId=s.currentRoomId;
+ const oldRoom=s.rooms[oldRoomId];
+ const rooms={...s.rooms,[oldRoomId]:{...oldRoom,joined:false,memberIds:oldRoom.memberIds.filter(m=>m!=='player')}};
+ // An ending may need a room to deliver its initial lines; preserve a joined room for E03.
+ if(target==='ending_E03'){
+   rooms[oldRoomId]={...oldRoom,joined:true};
+   return {...s,rooms,story:{...s.story,nodeId:target,history,stats},cursor:0,phase:'playing',pendingChoiceId:null};
+ }
+ return {...s,rooms,currentRoomId:null,spectator:null,story:{...s.story,nodeId:target,history,stats},cursor:0,phase:'playing',pendingChoiceId:null};
 }
 export function skipToBoundary(s:Runtime,maxEvents=500):Runtime{let next=s;for(let i=0;i<maxEvents&&next.phase==='playing';i++)next=commitEvent(next);if(next.phase==='playing')throw Error('Skip limit exceeded');return next;}
 export const persist=(s:Runtime)=>JSON.stringify({schemaVersion:1,contentVersion:'v19',state:s});

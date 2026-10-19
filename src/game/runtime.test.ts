@@ -11,3 +11,20 @@ let t=init();t=commitEvent(t);assert.equal(t.cursor,1);assert.equal(t.rooms.orig
 const scheduler=new PlaybackScheduler();let fired=0;scheduler.schedule(20,()=>fired++);scheduler.cancel();await new Promise(r=>setTimeout(r,35));assert.equal(fired,0);
 scheduler.schedule(50,()=>fired++);scheduler.skip();assert.equal(fired,1);await new Promise(r=>setTimeout(r,60));assert.equal(fired,1);
 console.log('runtime smoke tests PASS: E07, room leave/invite, local save, cancellation/skip');
+
+// v37: repeating the leave action must not farm success points or skip the game.
+let spam=init();
+const {leaveChat}=await import('./runtime.ts');
+spam=leaveChat(spam,true);
+assert.equal(spam.currentRoomId,null);
+assert.equal(spam.story.stats.quiet,0);
+spam=skipToBoundary(spam);
+spam=leaveChat(spam,true);
+assert.equal(spam.currentRoomId,null);
+spam=skipToBoundary(spam);
+assert(spam.currentRoomId?.startsWith('manual-reinvite-'));
+spam=leaveChat(spam,true);
+spam=skipToBoundary(spam);
+assert.equal(spam.endingId,'E03');
+assert.equal(spam.story.stats.quiet,0);
+console.log('v37 leave spam prevention PASS');
