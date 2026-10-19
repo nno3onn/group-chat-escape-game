@@ -1,10 +1,6 @@
-카톡방탈출 v36 — 성공/실패 엔딩 시각화 및 폭죽 효과
+카톡방탈출 v36 직접 교체 파일
 
-1. ZIP의 apply-ending-effects.py를 프로젝트 최상위 폴더(package.json 위치)에 복사합니다.
-2. python3 apply-ending-effects.py 실행
-3. npm run check && npm run test:offline && npm run build 실행
-4. 변경된 src/app/Game.tsx 및 src/app/style.css를 커밋합니다.
-
-E04/E06: 초록 성공 카드 및 폭죽. E01~E03: 빨간 실패 카드. E05: 보라 특수 엔딩. E07: 파란 강제 퇴장.
-폭죽은 CSS만 사용하며 접근성 설정에서 동작 줄이기를 켜면 자동 중단됩니다.
-게임 데이터 및 판정 로직은 수정하지 않습니다.
+ZIP의 src/app/Game.tsx와 src/app/style.css를 GitHub 프로젝트의 동일 경로에 업로드해 교체하세요.
+apply-ending-effects.py를 실행할 필요가 없습니다.
+기준: 기존 v34 Game.tsx + 최신 v28 style.css와 v36 엔딩 효과.
+변경 코드가 최신 저장소와 다르면 업로드 전 diff 검토하세요.
