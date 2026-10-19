@@ -1,1 +1,3 @@
-v37: Replace src/game/runtime.ts and src/game/runtime.test.ts in your repository. Repeated manual exits end in E03; quiet exit clicks do not increase silence score; fresh re-invite rooms avoid showing old chat. Test: npm run test:offline, npm run check, npm run build. Note: browser E2E not run here.
+v38 story direct replacement
+Replace src/game/story.ts in your repository. Do not upload or run apply-v38.py.
+Validated with 9 offline tests on the v37 runtime. Next.js/Playwright browser tests not run.
