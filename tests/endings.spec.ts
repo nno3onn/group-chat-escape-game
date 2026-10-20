@@ -33,7 +33,7 @@ async function skipToChoice(page: Page) {
 
 async function performChoice(page: Page, id: string) {
   const choice = page.locator(`.modal [data-choice-id="${id}"]`);
-  if (id.startsWith('leave_')) {
+  if (id === 'leave_silent' || id === 'leave_normal') {
     const direct = page.locator(`.suggestions [data-choice-id="${id}"]`);
     if (await direct.isVisible().catch(() => false)) await direct.click();
     else await page.getByRole('button', { name: '채팅방 나가기' }).first().click();
