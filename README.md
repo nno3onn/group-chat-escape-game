@@ -1,14 +1,30 @@
-# 카톡방탈출 v51 — 엔딩 원인 설명
+# 카톡방탈출 v52 — 플레이 중 반응 힌트
 
-기존 테스트를 통과한 v50 이후 코드에서 엔딩 결과 설명만 추가하는 패치입니다.
+## 반영 내용
+- 계속 읽씹하면 오히려 확인 메시지가 늘어나는 이유를 등장인물의 대사로 전달
+- 조용한 방에서 ‘침묵’과 ‘실제 퇴장’의 차이를 자연스럽게 알려줌
+- 재초대를 중단하는 게 중요하다는 단서를 대화 속에 추가
+- 퇴장 동의 분기에 후속 대사 추가
+- 엔딩 판정, 선택지 ID, 분기 경로 및 UI는 수정하지 않음
 
-1. ZIP에서 `apply_v51.py`를 프로젝트 루트로 복사합니다.
-2. `python3 apply_v51.py`를 실행합니다.
-3. `npm run check && npm run test:offline && npm run test:e2e`를 실행합니다.
-4. 모바일 반영 시 `npm run build:mobile && npx cap sync ios`를 실행합니다.
+## 적용
+프로젝트 최상위 폴더에 apply_v52.py를 복사한 뒤:
 
-바뀌는 파일: `src/app/Game.tsx`, `src/app/style.css`.
-스토리 판정, 7개 엔딩 경로, 플레이백 로직은 변경하지 않습니다.
-기존 엔딩 카드 아래에 선택에 따른 결과를 짧게 알려주는 안내문을 추가합니다.
-이미 적용된 코드나 달라진 소스에서는 anchor 검증에 실패해 중단합니다.
-추천 커밋: `feat: explain player choices on ending results`
+```bash
+python3 apply_v52.py
+npm run check
+npm run test:offline
+npm run test:e2e
+```
+
+iOS에서 확인:
+```bash
+npm run build:mobile
+npx cap sync ios
+```
+Xcode에서 Cmd+R.
+
+패치는 이미 반영된 경우 중복 적용하지 않으며, 예상 코드가 달라졌다면 수정 없이 중단합니다.
+**참고:** 이 ZIP의 테스트는 실행하지 않았습니다. GitHub Actions 결과를 확인해 주세요.
+
+추천 커밋: `feat: add subtle chat hints for escape decisions`
