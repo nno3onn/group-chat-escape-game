@@ -1,11 +1,12 @@
 'use client';
 import {useEffect,useRef} from 'react';
 type Placement='start'|'ending';
-const client=process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+const isNative=process.env.NEXT_PUBLIC_APP_TARGET==='native';
+const client=isNative?undefined:process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 const slots={start:process.env.NEXT_PUBLIC_ADSENSE_SLOT_START,ending:process.env.NEXT_PUBLIC_ADSENSE_SLOT_END};
 export default function AdSlot({placement}:{placement:Placement}){
  const mounted=useRef(false);
- const slot=slots[placement];
+ const slot=isNative?undefined:slots[placement];
  useEffect(()=>{
   if(!client||!slot||mounted.current)return;
   mounted.current=true;
