@@ -46,6 +46,13 @@ async function performChoice(page: Page, id: string) {
   const kind = await outside.getAttribute('data-choice-kind');
   if (kind !== 'reply' && kind !== 'action') throw new Error(`Unknown choice kind for ${id}: ${kind}`);
   await outside.click();
+  // Story-owned exit actions present a confirmation modal before committing the choice.
+  if (id === 'leave_menu_ch1_intro') {
+    const confirm = page.locator('.modal [data-choice-id="leave_silent"]');
+    await expect(confirm).toBeVisible();
+    await confirm.click();
+    return;
+  }
   if (kind === 'reply') {
     const send = page.getByRole('button', { name: '답장 전송' });
     await expect(send).toBeEnabled();
