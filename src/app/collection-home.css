@@ -1,0 +1,7 @@
+/* v49: make discovered endings accessible without starting a new playthrough. */
+.home-ending-collection{width:100%;max-width:440px;margin:3px auto 0;padding:0 2px}
+.home-ending-collection .ending-collection{margin:0;width:100%}
+.home-ending-collection .collection-trigger{cursor:pointer;min-height:46px}
+.home-ending-collection .collection-grid{max-height:min(34dvh,255px);overflow-y:auto;overscroll-behavior:contain}
+.home-ending-collection>p{margin:7px 0 0;text-align:center;color:#7c8587;font-size:11px;line-height:1.5}
+@media(max-width:500px){.home-ending-collection{margin-top:0}.home-ending-collection .collection-trigger{padding:10px 13px}}

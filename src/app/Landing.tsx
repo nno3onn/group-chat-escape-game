@@ -3,6 +3,8 @@ import {useEffect,useState} from 'react';
 import Game from './Game';
 import AdSlot from './AdSlot';
 import CharacterAvatar from './CharacterAvatar';
+import EndingCollection from './EndingCollection';
+import './collection-home.css';
 
 type Topic='how'|'about'|null;
 export default function Landing(){
@@ -26,6 +28,10 @@ export default function Landing(){
        <button className="primary-button" onClick={startGame}>시작하기 <span aria-hidden="true">→</span></button>
     </div>
     <div className="hero-links"><button onClick={()=>setTopic('how')}>플레이 방법</button><span aria-hidden="true">·</span><button onClick={()=>setTopic('about')}>게임 소개</button></div>
+    <div className="home-ending-collection" aria-label="내 엔딩 수집 현황">
+      <EndingCollection achieved={null}/>
+      <p>찾은 결말만 공개돼요. 다른 엔딩도 모아 보세요!</p>
+    </div>
    </section>
    <section className="landing-ad" aria-label="광고 위치"><AdSlot placement="start" /></section>
    <p className="landing-note">설치·로그인 없이 플레이 · 시작할 때마다 처음부터 진행</p>

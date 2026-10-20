@@ -1,19 +1,17 @@
-# v48 — E04 브라우저 경로와 스토리 일치화
+# 카톡방탈출 v49 — 시작 화면 엔딩 도감
 
-GitHub의 동일한 상대 경로에 두 파일을 덮어씁니다:
-- `src/app/Game.tsx`
-- `tests/endings.spec.ts`
+## 적용
+ZIP 안의 `src/app/Landing.tsx`와 `src/app/collection-home.css`를 프로젝트에서 동일한 경로에 복사하세요. `Landing.tsx`는 기존 파일을 덮어쓰고, `collection-home.css`는 새 파일입니다.
 
-## 원인
-`leave_menu_ch1_intro`는 스토리 엔진에서는 `choose`로 처리되지만, 화면에서는 모든 나가기 버튼을 `leaveChat`으로 처리하여 다음 분기가 바뀌었습니다.
-
-## 수정
-- 게임 스토리의 직접 나가기 선택은 기존 확인 모달을 유지하되 확인 시 원래의 스토리 선택을 실행합니다.
-- 상단 메뉴에서의 일반 나가기는 기존 `leaveChat` 동작을 유지합니다.
-- Playwright 테스트에서도 E04 첫 액션 뒤 확인 모달을 누릅니다.
-- 다른 엔딩 루트는 변경하지 않았습니다.
+## 변경 범위
+- 시작 화면에서도 기존 `EndingCollection` 컴포넌트를 열어 7개 엔딩 발견 현황을 확인할 수 있습니다.
+- 현재 도감과 동일한 localStorage 키를 사용하므로 이전에 발견한 엔딩 수집 상태가 유지됩니다.
+- 발견하지 않은 엔딩 이름은 숨깁니다.
+- 게임 엔진, 선택지, 엔딩 분기, 기존 E2E 테스트 파일은 변경하지 않습니다.
 
 ## 검증
-`npm run check && npm run test:offline && npm run test:e2e`
+`npm run check && npm run test:offline && npm run test:e2e && npm run build:mobile`
+이 ZIP은 CI/기기 테스트를 실행한 결과물이 아닙니다. GitHub에 업로드한 후 확인해 주세요.
 
-참고: 변경 후 GitHub Actions 결과는 재실행하여 확인해야 합니다.
+## 추천 커밋
+`feat: show ending collection on landing screen`
