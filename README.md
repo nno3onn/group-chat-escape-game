@@ -1,23 +1,18 @@
-# 카톡방탈출 아이콘 에셋 수정본 v42
+# 카톡방탈출 Capacitor 설정 수정
 
-이 ZIP은 사용자가 지정한 노란색 채팅 아이콘 기준으로 모바일 앱 에셋을 교체하기 위한 파일입니다.
+기존 프로젝트 루트의 `capacitor.config.ts`를 이 파일로 교체하세요.
 
-## 포함 파일
-- assets/icon.png
-- assets/icon-foreground.png
-- assets/icon-background.png
-- assets/splash.png
+**주의:** 기존 프로젝트의 appId가 `com.katokbang.escape`와 다르다면 기존 appId 값을 유지하세요.
 
-## 적용 방법
-1. 기존 프로젝트 루트에 `assets/` 폴더를 덮어쓰기 합니다.
-2. 아래 명령어를 실행합니다.
+제거 사항: Capacitor 최신 버전에서 지원하지 않는 `bundledWebRuntime` 속성.
+
+빌드 및 iOS 동기화:
 
 ```bash
-npx @capacitor/assets generate --assetPath assets
-npx cap sync
+npm run build:mobile
+ls out/index.html
+npx cap sync ios
+npx cap open ios
 ```
 
-## 권장 커밋명
-```
-feat: 모바일 앱 아이콘 및 스플래시를 노란 채팅 아이콘으로 교체
-```
+`npm run build:mobile`이 성공한 후 다음 단계를 실행하세요. 이미 생성된 `ios` 폴더에는 `npx cap add ios`를 다시 실행하지 마세요.
