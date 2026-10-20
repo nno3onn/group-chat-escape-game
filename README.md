@@ -1,15 +1,21 @@
-# 카톡방탈출 v38 스토리 적용
+# 카톡방탈출 v39 — Vercel 방문자/페이지뷰 분석
 
-프로젝트 최신 master의 `src/game/story.ts`에 적용하는 스토리 패치입니다.
+## GitHub에 적용하기
 
-1. `apply-v38.py`를 프로젝트 루트(`package.json`이 있는 폴더)에 복사합니다.
-2. `python3 apply-v38.py`를 실행합니다.
-3. `git diff -- src/game/story.ts`로 변경 사항을 확인합니다.
-4. `npm run test:offline && npm run check && npm run build`를 실행합니다.
-5. 통과한 뒤 수정된 `src/game/story.ts`를 커밋/푸시합니다.
+- `package.json` → 저장소 루트 `package.json`으로 교체
+- `src/app/layout.tsx` → 같은 경로에 교체
+- **중요:** GitHub 저장소에 `package-lock.json`이 있다면, 아래 명령을 로컬 저장소 루트에서 실행한 후 갱신된 `package-lock.json`까지 커밋하세요. 잠금파일을 갱신하지 않고 `npm ci`로 빌드하면 실패할 수 있습니다.
 
-수정 범위: 첫 채팅의 초대 기록 복선, 준호의 재초대 고백, 태훈의 반복되는 의혹, 수빈의 과거 스크린샷, 민지의 속마음, 3/4/5장 조건부 대화, 7개 엔딩의 캐릭터별 후속 대사, E04/E07의 판정 조건 보강.
+```bash
+npm install
+npm run check
+npm run build
+```
 
-현재 실행 환경은 GitHub 저장소에 쓰기 접근/전체 런타임 의존성을 확보하지 못해 실제 저장소의 빌드·브라우저 E2E를 수행하지 못했습니다. 기존 브라우저 UI와 runtime 파일은 변경하지 않습니다.
+## Vercel에서 꼭 해야 하는 일
 
-주의: 이 파일은 사용자의 로컬 `story.ts`를 실제로 수정하는 적용 도구입니다. 프로젝트 루트가 아닌 다른 위치에서 실행하면 중단됩니다. v38을 한 번 적용한 뒤 중복 적용되지 않습니다.
+1. Vercel 대시보드 → `group-chat-escape-game` → Analytics → Enable.
+2. 변경된 코드 배포 후 사이트 방문.
+3. Analytics에서 Visitors, Pageviews, 날짜 범위 확인.
+
+**참고:** 활성화 이후부터 데이터가 집계됩니다. 별도의 '오늘 / 전체' 숫자가 사이트 화면에 노출되는 것은 아닙니다. 조회수는 방문자 수와 다르며, 한 페이지에서 여러 판을 플레이한 경우 페이지뷰가 늘지 않을 수 있습니다. 사용자별 게임 시작/엔딩 이벤트 집계는 이 패치에 포함되지 않았습니다.
