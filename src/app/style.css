@@ -128,3 +128,19 @@ body:has(.game-stage) .site-footer{display:none}
 @keyframes ending-burst{0%{transform:scale(.2) rotate(-35deg);opacity:0}35%{opacity:1}100%{transform:scale(1.7) rotate(35deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){.ending-confetti,.ending-fireworks-burst{animation:none!important;display:none!important}}
 @media(max-width:420px){.game-stage .ending-sheet{padding:14px 12px 24px;gap:10px}.ending-outcome-card{padding:15px 12px}.ending-outcome-symbol{width:52px;height:52px;font-size:31px}.ending-outcome-title{font-size:29px}}
+
+/* v45 iOS finishing touches: compact results and reachable collection */
+.game-stage .ending-sheet{gap:8px!important;align-content:start!important;padding-bottom:15px!important}
+.game-stage .ending-sheet .ending-outcome-card{margin-bottom:1px}
+.game-stage .ending-sheet>blockquote{margin:3px 0!important}
+.game-stage .ending-sheet>p{margin:2px 0 5px!important}
+.game-stage .ending-actions button{color:#29313a!important;background:#ffda75!important;font-weight:800}
+.game-stage .ending-actions{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.ending-collection{width:100%;margin:8px 0 5px}
+.collection-trigger{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px solid #e3d4b1;border-radius:13px;background:#fff9ec;padding:12px 15px;color:#45413a;font-weight:700}
+.collection-trigger strong{margin-left:auto;margin-right:8px;color:#2e8c67}
+.collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+.collection-entry{border:1px dashed #d2d4d6;border-radius:10px;background:#f5f5f4;padding:9px;display:grid;gap:4px;text-align:left;color:#7a7e83;font-size:11px}
+.collection-entry strong{font-size:12px;line-height:1.35}
+.collection-entry.unlocked{background:#fffbee;color:#333;border-style:solid;border-color:#e9c982}
+@media(max-width:390px){.collection-grid{grid-template-columns:1fr}}

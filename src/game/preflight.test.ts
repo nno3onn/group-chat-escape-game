@@ -11,7 +11,7 @@ for (const [nodeId, node] of Object.entries(story)) {
 }
 // Confirm E04 never injects a post-leave message into a detached room.
 let game=init();
-const route=['intro_ignore','leave_silent','reason_silence','silent_continue','ch4_silence','final_disappear'];
+const route=['leave_menu_ch1_intro','reason_notification','quiet_ignore','ch4_polite','final_disappear'];
 for(const id of route){game=skipToBoundary(game);assert.ok(visibleChoices(game).some(c=>c.id===id));game=selectChoice(game,id)}
 while(game.phase==='playing') game=commitEvent(game);
 assert.equal(game.endingId,'E04');
